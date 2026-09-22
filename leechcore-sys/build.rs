@@ -76,6 +76,7 @@ fn build() {
         println!("cargo:rustc-link-lib=secur32");
         println!("cargo:rustc-link-lib=credui");
         println!("cargo:rustc-link-lib=ole32");
+        println!("cargo:rustc-link-lib=advapi32");
     } else if target().contains("linux") {
         // setup additional flags
         cfg.flag("-fPIC");
