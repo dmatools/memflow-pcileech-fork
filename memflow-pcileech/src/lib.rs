@@ -21,7 +21,7 @@ const PAGE_SIZE: usize = 0x1000usize;
 // the absolute minimum BUF_ALIGN is 4.
 // using 8 bytes as BUF_ALIGN here simplifies things a lot
 // and makes our gap detection code work in cases where page boundaries would be crossed.
-const BUF_ALIGN: u64 = 8;
+const BUF_ALIGN: usize = 8;
 const BUF_MIN_LEN: usize = 8;
 const BUF_LEN_ALIGN: usize = 8;
 
@@ -79,8 +79,8 @@ fn build_lc_config(device: &str, remote: Option<&str>, with_mem_map: bool) -> LC
     }
 }
 
-const fn calc_num_pages(start: u64, size: u64) -> u64 {
-    ((start & (PAGE_SIZE as u64 - 1)) + size + (PAGE_SIZE as u64 - 1)) >> 12
+const fn calc_num_pages(start: usize, size: usize) -> usize {
+    ((start & (PAGE_SIZE - 1)) + size + (PAGE_SIZE - 1)) >> 12
 }
 
 #[allow(clippy::mutex_atomic)]
@@ -226,15 +226,15 @@ impl PhysicalMemory for PciLeech {
         };
 
         // get total number of pages
-        let num_pages = vec.iter().fold(0u64, |acc, read| {
-            acc + calc_num_pages(read.0.to_umem(), read.2.len() as u64)
+        let num_pages = vec.iter().fold(0usize, |acc, read| {
+            acc + calc_num_pages(read.0.to_umem(), read.2.len())
         });
 
         // allocate scatter buffer
         let mut mems = std::ptr::null_mut::<PMEM_SCATTER>();
         let result = unsafe {
             LcAllocScatter2(
-                (num_pages * PAGE_SIZE as u64) as u32,
+                (num_pages * PAGE_SIZE) as u32,
                 std::ptr::null_mut(),
                 num_pages as u32,
                 &mut mems as *mut PPMEM_SCATTER,
@@ -257,7 +257,7 @@ impl PhysicalMemory for PciLeech {
 
                 if addr_align == 0 && len_align == 0 && out.len() >= BUF_MIN_LEN {
                     // properly aligned read
-                    unsafe { (*mem).qwA = page_addr.to_umem() };
+                    unsafe { (*mem).qwA = page_addr.to_umem() as u64 };
                     unsafe { (*mem).__bindgen_anon_1.pb = out.as_mut_ptr() };
                     unsafe { (*mem).cb = out.len() as u32 };
                 } else {
@@ -292,7 +292,7 @@ impl PhysicalMemory for PciLeech {
                         out_end: out.len() + addr_align as usize,
                     });
 
-                    unsafe { (*mem).qwA = page_addr_align };
+                    unsafe { (*mem).qwA = page_addr_align as u64 };
                     unsafe { (*mem).__bindgen_anon_1.pb = buffer_ptr };
                     unsafe { (*mem).cb = buffer_len as u32 };
                 }
@@ -353,15 +353,15 @@ impl PhysicalMemory for PciLeech {
         };
 
         // get total number of pages
-        let num_pages = vec.iter().fold(0u64, |acc, read| {
-            acc + calc_num_pages(read.0.to_umem(), read.2.len() as u64)
+        let num_pages = vec.iter().fold(0usize, |acc, read| {
+            acc + calc_num_pages(read.0.to_umem(), read.2.len())
         });
 
         // allocate scatter buffer
         let mut mems = std::ptr::null_mut::<PMEM_SCATTER>();
         let result = unsafe {
             LcAllocScatter2(
-                (num_pages * PAGE_SIZE as u64) as u32,
+                (num_pages * PAGE_SIZE) as u32,
                 std::ptr::null_mut(),
                 num_pages as u32,
                 &mut mems as *mut PPMEM_SCATTER,
@@ -384,7 +384,7 @@ impl PhysicalMemory for PciLeech {
 
                 if addr_align == 0 && len_align == 0 && out.len() >= BUF_MIN_LEN {
                     // properly aligned write
-                    unsafe { (*mem).qwA = page_addr.to_umem() };
+                    unsafe { (*mem).qwA = page_addr.to_umem() as u64 };
                     unsafe { (*mem).__bindgen_anon_1.pb = out.as_ptr() as *mut u8 };
                     unsafe { (*mem).cb = out.len() as u32 };
                 } else {
@@ -423,7 +423,7 @@ impl PhysicalMemory for PciLeech {
                     });
 
                     // store pointers into pcileech struct for writing (after we dispatched a read)
-                    unsafe { (*mem).qwA = page_addr_align };
+                    unsafe { (*mem).qwA = page_addr_align as u64 };
                     unsafe { (*mem).__bindgen_anon_1.pb = buffer_ptr };
                     unsafe { (*mem).cb = buffer_len as u32 };
                 }
