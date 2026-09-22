@@ -31,12 +31,12 @@ fn main() {
     }
     .expect("unable to parse command line arguments");
 
-    let inventory = Inventory::scan();
+    let mut inventory = Inventory::scan();
     let connector = inventory
-        .create_connector("pcileech", None, Some(&connector_args))
+        .instantiate_connector("pcileech", None, Some(&connector_args))
         .expect("unable to create pcileech connector");
     let mut os = inventory
-        .create_os("win32", Some(connector), None)
+        .instantiate_os("win32", Some(connector), None)
         .expect("unable to create win32 instance with pcileech connector");
 
     let process_list = os.process_info_list().expect("unable to read process list");
