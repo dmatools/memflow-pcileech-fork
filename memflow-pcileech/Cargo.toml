@@ -16,7 +16,7 @@ categories = [ "api-bindings", "memory-management", "os" ]
 crate-type = ["lib", "cdylib"]
 
 [dependencies]
-memflow = { git = "https://github.com/dmatools/memflow-fork", branch = "main", default-features = false, features = ["plugins", "memmapfiles", "std"] }
+memflow = { git = "https://github.com/dmatools/memflow-fork", branch = "main", default-features = false, features = ["64_bit_mem", "std"] }
 leechcore-sys = { version = "0.2", path = "../leechcore-sys" }
 log = "0.4"
 parking_lot = "0.12"
@@ -26,8 +26,9 @@ env_logger = "0.11"
 memflow-win32 = { git = "https://github.com/dmatools/memflow-win32-fork", branch = "main", default-features = false, features = ["std"] }
 
 [features]
-default = [ ]
+default = ["plugins"]
 bindgen = [ "leechcore-sys/bindgen" ]
+plugins = ["memflow/plugins", "memflow/memmapfiles"]
 
 [[example]]
 name = "read_phys"
